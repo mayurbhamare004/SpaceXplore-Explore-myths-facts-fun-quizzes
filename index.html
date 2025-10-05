@@ -1,16 +1,22 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>SpaceXplore → Explore myths, facts & fun quizzes</title>
     <link rel="stylesheet" href="styles.css">
-    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=Inter:wght@300;400;500&display=swap" rel="stylesheet">
+    <link
+        href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=Inter:wght@300;400;500&display=swap"
+        rel="stylesheet">
+    <!-- Supabase Client -->
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 </head>
+
 <body>
     <!-- Animated Stars Background -->
     <div class="stars"></div>
-    
+
     <!-- Floating Background Elements -->
     <div class="floating-elements">
         <div class="planet planet-1">🪐</div>
@@ -25,9 +31,33 @@
         <header class="header">
             <div class="header-top">
                 <h1 class="title">SpaceXplore → Explore myths, facts & fun quizzes</h1>
-                <button id="themeToggle" class="theme-toggle" title="Toggle Light/Dark Mode">
-                    <span class="theme-icon">🌙</span>
-                </button>
+                <div class="header-controls">
+                    <!-- Authentication Section -->
+                    <div id="authSection" class="auth-section">
+                        <div id="signedOutState" class="auth-buttons">
+                            <button id="signInBtn" class="auth-btn signin-btn">🚀 Sign In</button>
+                            <button id="signUpBtn" class="auth-btn signup-btn">⭐ Sign Up</button>
+                        </div>
+                        <div id="signedInState" class="user-profile hidden">
+                            <div class="user-info">
+                                <span id="userEmail" class="user-email">user@example.com</span>
+                                <div class="user-stats">
+                                    <span id="userProgress" class="user-stat">Progress: 0/15</span>
+                                    <span id="userScore" class="user-stat">Best Score: 0</span>
+                                </div>
+                            </div>
+                            <button id="userMenuBtn" class="user-menu-btn">👨‍🚀</button>
+                            <div id="userDropdown" class="user-dropdown hidden">
+                                <button id="profileBtn" class="dropdown-item">📊 Profile</button>
+                                <button id="settingsBtn" class="dropdown-item">⚙️ Settings</button>
+                                <button id="signOutBtn" class="dropdown-item">🚪 Sign Out</button>
+                            </div>
+                        </div>
+                    </div>
+                    <button id="themeToggle" class="theme-toggle" title="Toggle Light/Dark Mode">
+                        <span class="theme-icon">🌙</span>
+                    </button>
+                </div>
             </div>
             <p class="subtitle">Debunking common space misconceptions with science</p>
 
@@ -37,10 +67,11 @@
                     <input type="text" id="searchInput" placeholder="🔍 Search myths (gravity, moon, astronauts...)" />
                     <button id="clearSearch" class="clear-btn">✕</button>
                 </div>
-                
+
                 <div class="action-buttons">
                     <button id="randomMythBtn" class="action-btn random-btn">🎲 Random Myth</button>
                     <button id="quizModeBtn" class="action-btn quiz-btn">🧠 Quiz Mode</button>
+                    <button id="childrenModeBtn" class="action-btn children-btn">👶 Kids Mode</button>
                     <button id="submitMythBtn" class="action-btn submit-btn">📝 Submit Myth</button>
                     <button id="resetProgressBtn" class="action-btn reset-btn">🔄 Reset Progress</button>
                 </div>
@@ -95,15 +126,48 @@
 
     <!-- Quiz Mode Overlay -->
     <div id="quizOverlay" class="quiz-overlay hidden">
-        <div class="quiz-container">
+        <!-- Difficulty Selection Screen -->
+        <div id="difficultySelection" class="quiz-container">
             <div class="quiz-header">
                 <h2>🧠 Space Quiz Challenge</h2>
-                <p>Is this statement a MYTH or FACT?</p>
-                <div class="quiz-score">Score: <span id="quizScore">0</span>/<span id="quizTotal">0</span></div>
+                <p>Choose your difficulty level</p>
+            </div>
+            <div class="difficulty-options">
+                <button id="beginnerBtn" class="difficulty-btn beginner-btn">
+                    <div class="difficulty-icon">🟢</div>
+                    <div class="difficulty-title">Beginner Quiz</div>
+                    <div class="difficulty-desc">15 simple true/false questions<br>Hover hints available<br>1 minute
+                        total</div>
+                </button>
+                <button id="intermediateBtn" class="difficulty-btn intermediate-btn">
+                    <div class="difficulty-icon">🟡</div>
+                    <div class="difficulty-title">Intermediate Quiz</div>
+                    <div class="difficulty-desc">15 mixed questions<br>Partial scoring (+2/-1)<br>1 minute total</div>
+                </button>
+                <button id="advancedBtn" class="difficulty-btn advanced-btn">
+                    <div class="difficulty-icon">🔴</div>
+                    <div class="difficulty-title">Advanced Quiz</div>
+                    <div class="difficulty-desc">15 complex questions<br>Stricter scoring (+3/-2)<br>1 minute total
+                    </div>
+                </button>
+            </div>
+            <button id="exitQuizBtn" class="exit-quiz-btn">Exit Quiz</button>
+        </div>
+
+        <!-- Quiz Game Screen -->
+        <div id="quizGame" class="quiz-container hidden">
+            <div class="quiz-header">
+                <h2 id="quizTitle">🧠 Space Quiz Challenge</h2>
+                <div class="quiz-info">
+                    <div class="quiz-score">Score: <span id="quizScore">0</span></div>
+                    <div class="quiz-timer">Time: <span id="quizTimer">60</span>s</div>
+                    <div class="quiz-progress">Question: <span id="currentQuestion">1</span>/15</div>
+                </div>
             </div>
             <div class="quiz-card">
                 <div class="quiz-statement" id="quizStatement"></div>
-                <div class="quiz-buttons">
+                <div class="quiz-hint hidden" id="quizHint"></div>
+                <div class="quiz-buttons" id="quizButtons">
                     <button id="mythBtn" class="quiz-answer-btn myth-btn">❌ MYTH</button>
                     <button id="factBtn" class="quiz-answer-btn fact-btn">✅ FACT</button>
                 </div>
@@ -113,7 +177,24 @@
                 <div class="result-explanation" id="resultExplanation"></div>
                 <button id="nextQuizBtn" class="next-btn">Next Question</button>
             </div>
-            <button id="exitQuizBtn" class="exit-quiz-btn">Exit Quiz</button>
+            <button id="backToMenuBtn" class="back-to-menu-btn">Back to Menu</button>
+        </div>
+
+        <!-- Quiz Results Screen -->
+        <div id="quizResults" class="quiz-container hidden">
+            <div class="quiz-header">
+                <h2>🏆 Quiz Complete!</h2>
+            </div>
+            <div class="results-content">
+                <div class="final-score" id="finalScore"></div>
+                <div class="score-breakdown" id="scoreBreakdown"></div>
+                <div class="performance-message" id="performanceMessage"></div>
+            </div>
+            <div class="results-buttons">
+                <button id="retryQuizBtn" class="retry-btn">Try Again</button>
+                <button id="newDifficultyBtn" class="new-difficulty-btn">Choose New Difficulty</button>
+                <button id="exitResultsBtn" class="exit-quiz-btn">Exit Quiz</button>
+            </div>
         </div>
     </div>
 
@@ -131,7 +212,8 @@
                 </div>
                 <div class="form-group">
                     <label for="factText">Scientific Fact/Explanation:</label>
-                    <textarea id="factText" placeholder="Provide the correct scientific explanation..." required></textarea>
+                    <textarea id="factText" placeholder="Provide the correct scientific explanation..."
+                        required></textarea>
                 </div>
                 <div class="form-group">
                     <label for="categorySelect">Category:</label>
@@ -156,12 +238,313 @@
         </div>
     </div>
 
+    <!-- Children's Mode Overlay -->
+    <div id="childrenModeOverlay" class="children-overlay hidden">
+        <!-- Children's Mode Main Menu -->
+        <div id="childrenMainMenu" class="children-container">
+            <div class="children-header">
+                <h1 class="children-title">🚀 Space Adventure for Kids! 🌟</h1>
+                <div class="mascot">
+                    <div class="astronaut-mascot">👨‍🚀</div>
+                    <div class="speech-bubble">Hi there, space explorer! Ready for an amazing adventure?</div>
+                </div>
+            </div>
+
+            <div class="children-menu-options">
+                <button id="childrenQuizBtn" class="children-menu-btn quiz-option">
+                    <div class="btn-icon">🧠</div>
+                    <div class="btn-title">Fun Space Quiz</div>
+                    <div class="btn-desc">Answer easy questions about space!</div>
+                </button>
+
+                <button id="childrenStoryBtn" class="children-menu-btn story-option">
+                    <div class="btn-icon">📚</div>
+                    <div class="btn-title">Space Story Adventure</div>
+                    <div class="btn-desc">Travel through space and learn cool facts!</div>
+                </button>
+
+                <button id="childrenGamesBtn" class="children-menu-btn games-option">
+                    <div class="btn-icon">🎮</div>
+                    <div class="btn-title">Space Games</div>
+                    <div class="btn-desc">Play fun games and learn about planets!</div>
+                </button>
+
+                <button id="childrenVideosBtn" class="children-menu-btn videos-option">
+                    <div class="btn-icon">🎬</div>
+                    <div class="btn-title">Space Videos</div>
+                    <div class="btn-desc">Watch fun animations about space myths!</div>
+                </button>
+            </div>
+
+            <button id="exitChildrenModeBtn" class="exit-children-btn">🏠 Back to Grown-up Mode</button>
+        </div>
+
+        <!-- Children's Quiz Mode -->
+        <div id="childrenQuizMode" class="children-container hidden">
+            <div class="children-header">
+                <h2 class="children-quiz-title">🌟 Space Quiz Time! 🌟</h2>
+                <div class="quiz-mascot">
+                    <div class="astronaut-mascot">👨‍🚀</div>
+                    <div class="speech-bubble" id="mascotSpeech">Let's learn about space together!</div>
+                </div>
+                <div class="children-quiz-info">
+                    <div class="quiz-score-kids">Stars Earned: <span id="childrenQuizScore">0</span> ⭐</div>
+                    <div class="quiz-progress-kids">Question <span id="childrenCurrentQ">1</span> of 10</div>
+                </div>
+            </div>
+
+            <div class="children-quiz-card">
+                <div class="question-illustration" id="questionIllustration">🌌</div>
+                <div class="children-question" id="childrenQuestion">Loading question...</div>
+                <div class="children-quiz-buttons" id="childrenQuizButtons">
+                    <button class="children-answer-btn true-btn">✅ TRUE</button>
+                    <button class="children-answer-btn false-btn">❌ FALSE</button>
+                </div>
+            </div>
+
+            <div class="children-quiz-result hidden" id="childrenQuizResult">
+                <div class="result-animation" id="resultAnimation">🎉</div>
+                <div class="result-text-kids" id="resultTextKids">Great job!</div>
+                <div class="result-explanation-kids" id="resultExplanationKids">Here's why...</div>
+                <button id="nextChildrenQuizBtn" class="next-btn-kids">Next Question! 🚀</button>
+            </div>
+
+            <button id="backToChildrenMenuBtn" class="back-btn-kids">🏠 Back to Menu</button>
+        </div>
+
+        <!-- Children's Story Mode -->
+        <div id="childrenStoryMode" class="children-container hidden">
+            <div class="story-header">
+                <h2 class="story-title">🚀 Space Adventure Story 🌟</h2>
+                <div class="story-progress">
+                    <div class="progress-planets">
+                        <div class="planet-stop active" data-stop="0">🌍</div>
+                        <div class="planet-stop" data-stop="1">🌙</div>
+                        <div class="planet-stop" data-stop="2">🪐</div>
+                        <div class="planet-stop" data-stop="3">⭐</div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="story-content">
+                <div class="story-illustration" id="storyIllustration">🚀</div>
+                <div class="story-text" id="storyText">Welcome to your space adventure!</div>
+                <div class="story-choices" id="storyChoices">
+                    <button class="story-choice-btn" data-choice="0">Start the adventure! 🚀</button>
+                </div>
+            </div>
+
+            <button id="backToChildrenMenuFromStory" class="back-btn-kids">🏠 Back to Menu</button>
+        </div>
+
+        <!-- Children's Games Mode -->
+        <div id="childrenGamesMode" class="children-container hidden">
+            <div class="games-header">
+                <h2 class="games-title">🎮 Space Games! 🎮</h2>
+                <div class="games-mascot">
+                    <div class="astronaut-mascot">👨‍🚀</div>
+                    <div class="speech-bubble">Let's play and learn!</div>
+                </div>
+            </div>
+
+            <!--  <div class="games-grid">
+                <button id="matchGameBtn" class="game-card">
+                    <div class="game-icon">�</div>
+                    <div class="game-title">Match the Planets</div>
+                    <div class="game-desc">Match planet emojis with their names!</div>
+                </button> -->
+
+            <button id="rocketGameBtn" class="game-card">
+                <div class="game-icon">🚀</div>
+                <div class="game-title">Build a Rocket</div>
+                <div class="game-desc">Put rocket parts in the right order!</div>
+            </button>
+
+            <button id="solarSystemBtn" class="game-card">
+                <div class="game-icon">�</ /div>
+                    <div class="game-title">Solar System Order</div>
+                    <div class="game-desc">Arrange planets from Sun to Pluto!</div>
+            </button>
+        </div>
+
+        <button id="backToChildrenMenuFromGames" class="back-btn-kids">🏠 Back to Menu</button>
+    </div>
+
+    <!-- Children's Videos Mode -->
+    <div id="childrenVideosMode" class="children-container hidden">
+        <div class="videos-header">
+            <h2 class="videos-title">🎬 Space Videos! �</h2>/
+            <div class="videos-mascot">
+                <div class="astronaut-mascot">👨‍🚀</div>
+                <div class="speech-bubble">Let's watch cool space videos together!</div>
+            </div>
+        </div>
+
+        <div class="videos-grid">
+            <div class="video-card" data-video-url="YOUTUBE_LINK_1">
+                <div class="video-thumbnail">
+                    <div class="play-button">▶️</div>
+                    <div class="video-title">Space Adventure 1</div>
+                </div>
+            </div>
+
+            <div class="video-card" data-video-url="YOUTUBE_LINK_2">
+                <div class="video-thumbnail">
+                    <div class="play-button">▶️</div>
+                    <div class="video-title">Space Adventure 2</div>
+                </div>
+            </div>
+
+            <div class="video-card" data-video-url="YOUTUBE_LINK_3">
+                <div class="video-thumbnail">
+                    <div class="play-button">▶️</div>
+                    <div class="video-title">Space Adventure 3</div>
+                </div>
+            </div>
+
+            <div class="video-card" data-video-url="YOUTUBE_LINK_4">
+                <div class="video-thumbnail">
+                    <div class="play-button">▶️</div>
+                    <div class="video-title">Space Adventure 4</div>
+                </div>
+            </div>
+
+            <div class="video-card" data-video-url="YOUTUBE_LINK_5">
+                <div class="video-thumbnail">
+                    <div class="play-button">▶️</div>
+                    <div class="video-title">Space Adventure 5</div>
+                </div>
+            </div>
+        </div>
+
+        <button id="backToChildrenMenuFromVideos" class="back-btn-kids">🏠 Back to Menu</button>
+    </div>
+
+    <!-- 
+        <div id="matchGame" class="children-container hidden">
+            <div class="match-header">
+                <h3 class="match-title">� Matc h the Planets! 🎯</h3>
+                <div class="match-score">Score: <span id="matchScore">0</span> ⭐</div>
+            </div>
+            <div class="match-instructions">
+                <p>🌟 Click on cards to flip them and find matching pairs!</p>
+                <p>🪐 Match planet emojis with their names!</p>
+            </div>
+            <div id="matchGrid" class="match-grid">
+            </div>
+            <button id="backToGamesFromMatch" class="back-btn-kids">🎮 Back to Games</button>
+        </div>  -->
+
+
+    </div>
+
+    <!-- Authentication Modals -->
+    <!-- Sign In Modal -->
+    <div id="signInModal" class="auth-modal-overlay hidden">
+        <div class="auth-modal-container">
+            <div class="auth-modal-header">
+                <h2>🚀 Welcome Back, Space Explorer!</h2>
+                <button id="closeSignInModal" class="close-modal">✕</button>
+            </div>
+            <form id="signInForm" class="auth-form">
+                <div class="form-group">
+                    <label for="signInEmail">Email:</label>
+                    <input type="email" id="signInEmail" placeholder="your.email@space.com" required>
+                </div>
+                <div class="form-group">
+                    <label for="signInPassword">Password:</label>
+                    <input type="password" id="signInPassword" placeholder="Your secure password" required>
+                </div>
+                <div class="auth-buttons">
+                    <button type="submit" class="auth-submit-btn">🚀 Launch Into Space</button>
+                    <button type="button" id="forgotPasswordBtn" class="auth-link-btn">🔑 Forgot Password?</button>
+                </div>
+                <div class="auth-switch">
+                    <p>New to space exploration? <button type="button" id="switchToSignUp" class="auth-link-btn">Join
+                            the crew!</button></p>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Sign Up Modal -->
+    <div id="signUpModal" class="auth-modal-overlay hidden">
+        <div class="auth-modal-container">
+            <div class="auth-modal-header">
+                <h2>⭐ Join the Space Crew!</h2>
+                <button id="closeSignUpModal" class="close-modal">✕</button>
+            </div>
+            <form id="signUpForm" class="auth-form">
+                <div class="form-group">
+                    <label for="signUpEmail">Email:</label>
+                    <input type="email" id="signUpEmail" placeholder="your.email@space.com" required>
+                </div>
+                <div class="form-group">
+                    <label for="signUpPassword">Password:</label>
+                    <input type="password" id="signUpPassword" placeholder="Create a secure password" required
+                        minlength="6">
+                </div>
+                <div class="form-group">
+                    <label for="confirmPassword">Confirm Password:</label>
+                    <input type="password" id="confirmPassword" placeholder="Confirm your password" required>
+                </div>
+                <div class="form-group">
+                    <label for="displayName">Space Explorer Name (Optional):</label>
+                    <input type="text" id="displayName" placeholder="Captain Awesome">
+                </div>
+                <div class="auth-buttons">
+                    <button type="submit" class="auth-submit-btn">⭐ Begin Space Journey</button>
+                </div>
+                <div class="auth-switch">
+                    <p>Already have an account? <button type="button" id="switchToSignIn" class="auth-link-btn">Sign in
+                            here!</button></p>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- User Profile Modal -->
+    <div id="profileModal" class="auth-modal-overlay hidden">
+        <div class="auth-modal-container">
+            <div class="auth-modal-header">
+                <h2>📊 Your Space Journey</h2>
+                <button id="closeProfileModal" class="close-modal">✕</button>
+            </div>
+            <div class="profile-content">
+                <div class="profile-stats">
+                    <div class="stat-card">
+                        <div class="stat-icon">🎯</div>
+                        <div class="stat-info">
+                            <div class="stat-value" id="profileProgress">0/15</div>
+                            <div class="stat-label">Myths Explored</div>
+                        </div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-icon">🏆</div>
+                        <div class="stat-info">
+                            <div class="stat-value" id="profileBestScore">0</div>
+                            <div class="stat-label">Best Quiz Score</div>
+                        </div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-icon">⭐</div>
+                        <div class="stat-info">
+                            <div class="stat-value" id="profileTotalQuizzes">0</div>
+                            <div class="stat-label">Quizzes Completed</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
     <!-- Confetti Canvas -->
     <canvas id="confettiCanvas" class="confetti-canvas"></canvas>
 
     <!-- Tooltip -->
     <div id="tooltip" class="tooltip hidden"></div>
 
-    <script src="script.js"></script>
+    <script src="script-working.js"></script>
 </body>
+
 </html>

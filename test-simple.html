@@ -1,0 +1,244 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Space Myths Test</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background: #0c0c1e;
+            color: white;
+            padding: 20px;
+        }
+
+        .card {
+            background: #1a1a2e;
+            border: 2px solid #16213e;
+            border-radius: 15px;
+            padding: 20px;
+            margin: 10px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            min-height: 200px;
+        }
+
+        .card:hover {
+            transform: translateY(-5px);
+            border-color: #4a90e2;
+        }
+
+        .card.flipped {
+            background: #0f3460;
+            border-color: #4a90e2;
+        }
+
+        .card-label {
+            font-weight: bold;
+            color: #4a90e2;
+            margin-bottom: 10px;
+        }
+
+        .myth-icon,
+        .fact-icon {
+            font-size: 2em;
+            margin: 10px 0;
+        }
+
+        .myth-text,
+        .fact-text {
+            font-size: 1.1em;
+            line-height: 1.4;
+        }
+
+        .cards-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 20px;
+        }
+
+        .controls {
+            margin: 20px 0;
+        }
+
+        .btn {
+            background: #4a90e2;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 8px;
+            cursor: pointer;
+            margin: 5px;
+        }
+
+        .btn:hover {
+            background: #357abd;
+        }
+
+        .progress {
+            margin: 20px 0;
+        }
+
+        .progress-bar {
+            background: #333;
+            height: 10px;
+            border-radius: 5px;
+            overflow: hidden;
+        }
+
+        .progress-fill {
+            background: #4a90e2;
+            height: 100%;
+            width: 0%;
+            transition: width 0.3s ease;
+        }
+
+        .search-container {
+            margin: 20px 0;
+        }
+
+        .search-container input {
+            padding: 10px;
+            border-radius: 8px;
+            border: 1px solid #333;
+            background: #1a1a2e;
+            color: white;
+            width: 300px;
+        }
+
+        .category-filters {
+            margin: 20px 0;
+        }
+
+        .category-btn {
+            background: #333;
+            color: white;
+            border: none;
+            padding: 8px 16px;
+            border-radius: 20px;
+            cursor: pointer;
+            margin: 5px;
+        }
+
+        .category-btn.active {
+            background: #4a90e2;
+        }
+
+        .hidden {
+            display: none;
+        }
+    </style>
+</head>
+
+<body>
+    <h1>🚀 Space Myths vs Facts - Test Version</h1>
+
+    <div class="controls">
+        <button id="randomMythBtn" class="btn">🎲 Random Myth</button>
+        <button id="resetProgressBtn" class="btn">🔄 Reset Progress</button>
+        <button id="quizModeBtn" class="btn">🧠 Quiz Mode</button>
+        <button id="childrenModeBtn" class="btn">👶 Kids Mode</button>
+        <button id="submitMythBtn" class="btn">📝 Submit Myth</button>
+        <button id="themeToggle" class="btn">
+            <span class="theme-icon">🌙</span> Toggle Theme
+        </button>
+    </div>
+
+    <div class="search-container">
+        <input type="text" id="searchInput" placeholder="🔍 Search myths..." />
+        <button id="clearSearch" class="btn">Clear</button>
+    </div>
+
+    <div class="category-filters">
+        <button class="category-btn active" data-category="all">🌌 All</button>
+        <button class="category-btn" data-category="planets">🪐 Planets</button>
+        <button class="category-btn" data-category="astronauts">👨‍🚀 Astronauts</button>
+        <button class="category-btn" data-category="black-holes">🕳️ Black Holes</button>
+        <button class="category-btn" data-category="space-travel">🚀 Space Travel</button>
+        <button class="category-btn" data-category="general">⭐ General</button>
+    </div>
+
+    <div class="progress">
+        <div id="progressText">Progress: 0/15 myths explored</div>
+        <div class="progress-bar">
+            <div id="progressFill" class="progress-fill"></div>
+        </div>
+    </div>
+
+    <div id="cardsGrid" class="cards-grid">
+        <!-- Cards will be generated here -->
+    </div>
+
+    <div id="noResults" class="hidden">
+        <h3>No myths found</h3>
+        <p>Try a different search term or category</p>
+    </div>
+
+    <!-- Simple Quiz Overlay -->
+    <div id="quizOverlay" class="hidden"
+        style="position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.9); z-index: 1000; display: flex; align-items: center; justify-content: center;">
+        <div style="background: #1a1a2e; padding: 30px; border-radius: 15px; max-width: 600px; text-align: center;">
+            <h2>🧠 Space Quiz Challenge</h2>
+            <div style="margin: 20px 0;">
+                Score: <span id="quizScore">0</span> | Question: <span id="currentQuestion">1</span>/10
+            </div>
+            <div id="quizStatement" style="font-size: 1.2em; margin: 20px 0; min-height: 60px;">Loading question...
+            </div>
+            <div id="quizButtons">
+                <button id="trueBtn" class="btn" style="margin: 10px;">✅ TRUE</button>
+                <button id="falseBtn" class="btn" style="margin: 10px;">❌ FALSE</button>
+            </div>
+            <button id="exitQuizBtn" class="btn" style="margin-top: 20px;">Exit Quiz</button>
+        </div>
+    </div>
+
+    <!-- Simple Children's Overlay -->
+    <div id="childrenOverlay" class="hidden"
+        style="position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.9); z-index: 1000; display: flex; align-items: center; justify-content: center;">
+        <div style="background: #1a1a2e; padding: 30px; border-radius: 15px; max-width: 600px; text-align: center;">
+            <h1>🚀 Space Adventure for Kids! 🌟</h1>
+            <div style="margin: 30px 0;">
+                <button id="kidsQuizBtn" class="btn" style="display: block; margin: 10px auto; width: 200px;">🧠 Fun
+                    Space Quiz</button>
+                <button id="spaceStoryBtn" class="btn" style="display: block; margin: 10px auto; width: 200px;">📚 Space
+                    Story</button>
+                <button id="spaceGamesBtn" class="btn" style="display: block; margin: 10px auto; width: 200px;">🎮 Space
+                    Games</button>
+            </div>
+            <button id="exitChildrenBtn" class="btn">🏠 Back to Grown-up Mode</button>
+        </div>
+    </div>
+
+    <!-- Simple Submit Modal -->
+    <div id="submitModal" class="hidden"
+        style="position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.9); z-index: 1000; display: flex; align-items: center; justify-content: center;">
+        <div style="background: #1a1a2e; padding: 30px; border-radius: 15px; max-width: 500px;">
+            <h2>📝 Submit Your Space Myth</h2>
+            <button id="closeModal"
+                style="float: right; background: none; border: none; color: white; font-size: 20px; cursor: pointer;">✕</button>
+            <form id="mythForm">
+                <div style="margin: 15px 0;">
+                    <label>Myth Statement:</label><br>
+                    <textarea id="mythText"
+                        style="width: 100%; padding: 10px; border-radius: 5px; border: 1px solid #333; background: #333; color: white;"
+                        rows="3" required></textarea>
+                </div>
+                <div style="margin: 15px 0;">
+                    <label>Scientific Fact:</label><br>
+                    <textarea id="factText"
+                        style="width: 100%; padding: 10px; border-radius: 5px; border: 1px solid #333; background: #333; color: white;"
+                        rows="3" required></textarea>
+                </div>
+                <div style="margin: 15px 0;">
+                    <button type="submit" class="btn">🚀 Submit Myth</button>
+                    <button type="button" id="cancelSubmit" class="btn">Cancel</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <script src="script-simple.js"></script>
+</body>
+
+</html>
